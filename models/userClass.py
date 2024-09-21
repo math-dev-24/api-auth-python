@@ -1,12 +1,17 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Mapped, mapped_column
 from models.bdd import db
 
 
 class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(unique=True)
-    email: Mapped[str]
+    email: Mapped[str] = mapped_column(unique=True)
+    username: Mapped[str]
     password: Mapped[str]
+    is_active: Mapped[bool] = mapped_column(default=True)
+    is_admin: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     @staticmethod
     def get_users():
@@ -22,5 +27,8 @@ class User(db.Model):
             'id': self.id,
             'username': self.username,
             'email': self.email,
-            'password': self.password
+            'password': self.password,
+            'is_active': self.is_active,
+            'is_admin': self.is_admin,
+            'created_at': self.created_at
         }

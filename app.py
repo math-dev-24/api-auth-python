@@ -64,22 +64,16 @@ def index():
     }})
 
 
-@app.route('/users', methods=['GET'])
-def users():
-    list_users = auth_manager.get_users()
-    data = {
-        "quantity": len(list_users),
-        "users": list_users
-    }
-    return send_response(200, data)
-
-
 @app.route('/user', methods=['POST'])
 def create_user():
     headers = request.headers
     if headers.get('Content-Type') == 'application/json':
-        result = auth_manager.create_user(request.json)
-        return send_response(200, result)
+        response: dict = auth_manager.create_user(request.json)
+        message = {'message': response['message']}
+        if response['code'] == 200:
+            return send_response(200, message)
+        else:
+            return send_response(response['code'], message)
     else:
         return send_response(400, {'error': 'Unsupported Content-Type'})
 
@@ -89,7 +83,6 @@ def auth():
     auth_header = request.headers.get('Authorization')
     if auth_header:
         token = auth_header.split(" ")[1] if "Bearer " in auth_header else None
-        print(token)
         if token:
             if auth_manager.is_valid(auth_header):
                 return send_response(200, {'auth_token': token})
@@ -126,9 +119,15 @@ def login():
     auth_header = request.headers.get('Content-Type')
     if auth_header and auth_header == 'application/json':
         res: dict = auth_manager.login(email, password)
-        return send_response(res['message'], res['message'])
+        return send_response(res['code'], res['message'])
     else:
-        return send_response(400, {'error': 'Invalid token'})
+        return send_response(400, {'error': 'Error in logging in'})
+
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = auth_manager.get_users()
+    return send_response(200, {'users': users})
 
 
 if __name__ == '__main__':
